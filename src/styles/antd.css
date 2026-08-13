@@ -1,0 +1,38 @@
+.app-modal .ant-modal-content {
+  padding: 0;
+  overflow: hidden;
+}
+
+.app-modal .ant-modal-header {
+  margin: 0;
+  padding: 22px 24px 14px;
+}
+
+.app-modal .ant-modal-body {
+  padding: 8px 24px 4px;
+}
+
+.app-modal .ant-upload-wrapper .ant-upload-drag {
+  padding: 18px;
+  border-color: #9eb5ee;
+  background: #f7f9ff;
+}
+
+.app-modal .ant-upload-wrapper .ant-upload-drag-icon {
+  margin-bottom: 8px;
+}
+
+.app-modal .ant-upload-wrapper .ant-upload-drag-icon .anticon {
+  color: #356df3;
+  font-size: 30px;
+}
+
+.antd-kb-select {
+  width: 220px;
+}
+
+@media (max-width: 780px) {
+  .antd-kb-select {
+    width: 180px;
+  }
+}
