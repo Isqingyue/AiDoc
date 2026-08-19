@@ -61,10 +61,18 @@ export function SourcesPanel({
                   <i>{source.score}</i>
                 </span>
                 <span className="source-meta">
-                  <span>真实引用</span>
+                  <span>{source.modality === 'image' ? '原图引用' : '原文引用'}</span>
                   <span>{source.title}</span>
                   <span>{source.page ? `第 ${source.page} 页` : '章节定位'}</span>
                 </span>
+                {source.imageUrl && (
+                  <img
+                    className="source-image"
+                    src={source.imageUrl}
+                    alt={`${source.fileName} ${source.page ? `第 ${source.page} 页` : ''}引用图片`}
+                    loading="lazy"
+                  />
+                )}
                 <blockquote>{source.text}</blockquote>
               </button>
               {source.manualId && (

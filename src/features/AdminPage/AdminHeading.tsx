@@ -29,11 +29,11 @@ export function AdminHeading({
   const uploadDisabled = view === 'manuals' && selectedKnowledgeBase?.status !== 'enabled';
 
   return (
-    <header className="mb-6 flex items-end justify-between gap-4 max-[480px]:items-start">
+    <header className="mb-7 flex items-start justify-between gap-4 max-[480px]:items-start">
       <div className="min-w-0">
         {view === 'manuals' && (
           <Breadcrumb
-            className="mb-2"
+            className="mb-3"
             items={[
               {
                 title: (
@@ -46,13 +46,13 @@ export function AdminHeading({
             ]}
           />
         )}
-        <h1 className="m-0 text-2xl font-bold tracking-[-0.02em] text-[#192236]">{title}</h1>
-        <p className="mb-0 mt-1 text-[13px] text-[#7f899c]">{descriptions[view]}</p>
+        <h1 className="m-0 text-[26px] font-semibold leading-tight tracking-[-0.025em] text-[#192236]">{title}</h1>
+        <p className="mb-0 mt-2 text-[13px] leading-5 text-[#7f899c]">{descriptions[view]}</p>
       </div>
 
       {view !== 'analytics' && (
         <Button
-          className="shrink-0"
+          className="h-9 shrink-0 rounded-lg px-4 shadow-[0_2px_5px_rgb(53_109_243_/_20%)]"
           type="primary"
           icon={<PlusOutlined />}
           disabled={uploadDisabled}

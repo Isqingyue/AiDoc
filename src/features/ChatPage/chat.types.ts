@@ -8,6 +8,8 @@ export interface SourceItem {
   score: string;
   fileName: string;
   manualId?: string;
+  modality: 'text' | 'image';
+  imageUrl?: string;
 }
 
 export function getReferencedCitations(
@@ -24,11 +26,15 @@ export function getReferencedCitations(
 export function citationsToSources(citations: ApiCitation[]): SourceItem[] {
   return citations.map((citation, index) => ({
     n: Number.parseInt(citation.id, 10) || index + 1,
-    title: citation.chapter || citation.file_name,
+    title: citation.modality === 'image'
+      ? `图片 · ${citation.chapter || citation.file_name}`
+      : citation.chapter || citation.file_name,
     page: citation.page,
     text: citation.content,
     score: `${Math.round(citation.score * 100)}%`,
     fileName: citation.file_name,
     manualId: citation.manual_id,
+    modality: citation.modality || 'text',
+    imageUrl: citation.image_url || undefined,
   }));
 }
