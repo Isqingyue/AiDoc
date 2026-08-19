@@ -140,7 +140,7 @@ ai-smart-manual-backend/app/services/document_parser.py
 各格式的处理方式：
 
 - PDF：逐页提取文本，可以保存页码；
-- DOCX：读取段落和表格，根据 Heading 样式或编号识别章节；
+- DOCX：读取段落和表格，根据 Heading 样式或编号识别章节，并按正文 XML 顺序提取内嵌或浮动图片；
 - Markdown：根据 `#` 到 `######` 识别章节；
 - TXT：按普通文本解析。
 
@@ -567,3 +567,26 @@ src/features/ChatPage/SourcesPanel.tsx
 本项目的核心实现可以概括为：知识库负责业务隔离，手册负责承载原始资料，切片负责形成检索单元，Embedding 负责生成语义向量，Qdrant 负责向量检索，关系数据库负责保存完整业务数据，LLM 负责依据召回片段生成带引用的答案。
 
 当前是一套可运行的基础 RAG。下一阶段决定问答效果的重点不是继续增加页面，而是建立检索评测集，并持续优化切片、混合召回、重排、阈值和引用校验。
+
+## 20. PDF 与 DOCX 图片多模态 RAG
+
+系统已支持 PDF 和 DOCX 手册中的大尺寸图片参与问答：
+
+```text
+PDF / DOCX 正文 → DocumentChunk → 文本 Embedding ┐
+                                                   ├→ Qdrant 联合召回
+PDF 图片 → 图片说明 + 页面文字 → Embedding        │
+DOCX 图片 → 图片说明 + 章节前后文 → Embedding ────┘
+                                                   ↓
+                                图片命中时将对应原图发送给视觉模型
+                                                   ↓
+                                     返回原文引用或原图引用
+```
+
+图片保存在后端 `IMAGE_STORAGE_PATH`，关系数据库使用 `DocumentImage` 保存页码、章节、尺寸、摘要、周边正文和文件位置。PDF 图片保留页码；DOCX 没有稳定页码，使用 Heading 章节和前后段落定位。Qdrant payload 使用 `resource_type=text|image` 区分检索资源；未迁移的旧文本 Point 仍然可以读取。
+
+图片说明在手册处理阶段生成。配置 LLM 时使用视觉模型理解图片；没有配置 LLM 或单张图片理解失败时，系统使用章节、页码和页面正文生成降级说明，不阻塞整份手册。每份手册默认最多处理 12 张图片，可通过 `MAX_IMAGES_PER_MANUAL` 调整。
+
+问答阶段最多把 3 张命中的原图发送给模型。图片通过受权限保护的 `GET /api/manual-images/{image_id}/file` 接口展示，沿用知识库访问控制。引用新增 `modality`、`image_id`、`image_url` 和 `caption` 字段，原有文本引用和历史消息保持兼容。
+
+已在升级前处理的 PDF 或 DOCX 不会自动拥有图片索引。管理员需要依次执行“重新处理”和“发布到问答”。扫描 PDF 的整页 OCR、DOCX 页眉页脚图片和视觉向量模型暂未包含在当前版本。

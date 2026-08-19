@@ -49,6 +49,10 @@ export interface ApiCitation {
   chapter: string;
   content: string;
   score: number;
+  modality?: 'text' | 'image';
+  image_id?: string | null;
+  image_url?: string | null;
+  caption?: string | null;
 }
 
 export interface ApiManual {

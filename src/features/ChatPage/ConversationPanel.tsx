@@ -165,12 +165,15 @@ export function ConversationPanel({
                 <div className="answer-wrap">
                   <div className="answer-meta"><b>知问助手</b><span>{message.model_name || 'AI'}</span></div>
                   {message.content ? (
-                    <div className={`answer live-answer ${generating && message.id === latestMessage?.id ? 'streaming-answer' : ''}`}>
-                      <AnswerContent
-                        content={message.content}
-                        onCitation={(index) => onCitation(message, index)}
-                      />
-                    </div>
+                    <>
+                      <div className={`answer live-answer ${generating && message.id === latestMessage?.id ? 'streaming-answer' : ''}`}>
+                        <AnswerContent
+                          content={message.content}
+                          citations={message.citations}
+                          onCitation={(index) => onCitation(message, index)}
+                        />
+                      </div>
+                    </>
                   ) : generating && message.id === latestMessage?.id ? (
                     <div className="thinking"><span /><span /><span /> 正在检索手册并生成回答</div>
                   ) : null}
