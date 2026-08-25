@@ -11,6 +11,7 @@ interface ErrorPayload {
 export interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: BodyInit | object | null;
   fallbackMessage?: string;
+  skipUnauthorizedHandler?: boolean;
 }
 
 export class ApiError extends Error {
@@ -61,7 +62,13 @@ async function parseError(response: Response, fallbackMessage: string): Promise<
 }
 
 async function openResponse(path: string, options: RequestOptions): Promise<Response> {
-  const { body, fallbackMessage = "请求失败", headers, ...init } = options;
+  const {
+    body,
+    fallbackMessage = "请求失败",
+    headers,
+    skipUnauthorizedHandler = false,
+    ...init
+  } = options;
   const requestHeaders = new Headers(headers);
   const serializable = isSerializableBody(body);
 
@@ -89,7 +96,9 @@ async function openResponse(path: string, options: RequestOptions): Promise<Resp
 
   if (!response.ok) {
     const error = await parseError(response, fallbackMessage);
-    if (error.status === 401 || error.status >= 500) globalErrorHandler?.(error);
+    if ((error.status === 401 && !skipUnauthorizedHandler) || error.status >= 500) {
+      globalErrorHandler?.(error);
+    }
     throw error;
   }
   return response;

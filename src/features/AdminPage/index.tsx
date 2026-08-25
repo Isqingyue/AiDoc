@@ -12,6 +12,12 @@ import { ManualsView } from './manuals';
 import type { AdminPageProps } from './types';
 import { UsersView } from './users';
 
+const PROCESSING_MANUAL_STATUSES = new Set<ApiManual['status']>([
+  'uploading',
+  'parsing',
+  'chunking',
+]);
+
 export function AdminPage({
   view,
   title,
@@ -53,10 +59,36 @@ export function AdminPage({
   }, [dataVersion, reload]);
 
   useEffect(() => {
-    if (view !== 'manuals') return;
-    const timer = window.setInterval(() => void reload(), 2500);
-    return () => window.clearInterval(timer);
-  }, [view, reload]);
+    const hasProcessingManual = manuals.some((manual) => (
+      PROCESSING_MANUAL_STATUSES.has(manual.status)
+    ));
+    if (view !== 'manuals' || !hasProcessingManual) return;
+
+    const controller = new AbortController();
+    let timer: number | undefined;
+
+    const refreshProcessingManuals = async () => {
+      try {
+        const manualData = await listManuals(controller.signal);
+        setManuals(manualData);
+        setError('');
+
+        if (manualData.some((manual) => PROCESSING_MANUAL_STATUSES.has(manual.status))) {
+          timer = window.setTimeout(() => void refreshProcessingManuals(), 2500);
+        }
+      } catch (reason) {
+        if (!(reason instanceof DOMException && reason.name === 'AbortError')) {
+          setError(reason instanceof Error ? reason.message : '手册状态刷新失败');
+        }
+      }
+    };
+
+    timer = window.setTimeout(() => void refreshProcessingManuals(), 2500);
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [manuals, view]);
 
   const selectedKnowledgeBase = knowledgeBases.find(
     (item) => item.id === selectedKnowledgeBaseId,
